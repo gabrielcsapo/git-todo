@@ -16,6 +16,7 @@ test('@todo', (t) => {
     for (const todo of ['TODO: this should work', 'todo: this should work', 'fixme: this should work', 'FIXME: this should work']) {
       t.deepEqual(parse(0, todo), {
         content: 'this should work',
+        rawContent: todo,
         line: 0,
         column: 0
       })
@@ -30,6 +31,7 @@ test('@todo', (t) => {
     for (const todo of ['TODO: @gcsapo this should work', 'todo: @gcsapo this should work', 'FIXME: @gcsapo this should work', 'fixme: @gcsapo this should work']) {
       t.deepEqual(parse(0, todo), {
         content: 'this should work',
+        rawContent: todo,
         line: 0,
         column: 0,
         users: ['gcsapo']
@@ -45,6 +47,7 @@ test('@todo', (t) => {
     for (const todo of ['TODO: @gcsapo this should work #foo #bar', 'todo: @gcsapo this should work #foo #bar', 'fixme: @gcsapo this should work #foo #bar', 'FIXME: @gcsapo this should work #foo #bar']) {
       t.deepEqual(parse(0, todo), {
         content: 'this should work',
+        rawContent: todo,
         line: 0,
         column: 0,
         users: ['gcsapo'],

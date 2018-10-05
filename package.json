@@ -1,6 +1,6 @@
 {
   "name": "git-todo",
-  "version": "2.0.0",
+  "version": "2.1.0",
   "description": "✓ getting things done with git",
   "main": "index.js",
   "scripts": {
@@ -43,12 +43,14 @@
   "dependencies": {
     "chalk": "^2.4.1",
     "figures": "^2.0.0",
+    "ignore-walk": "^3.0.1",
     "minimatch": "^3.0.4",
     "woof": "^0.3.1"
   },
   "devDependencies": {
     "pkg": "^4.3.4",
     "standard": "^12.0.1",
+    "tap": "^12.0.1",
     "tape": "^4.9.1"
   }
 }

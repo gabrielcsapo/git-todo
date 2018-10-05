@@ -1,80 +1,61 @@
 const fs = require('fs')
 const path = require('path')
-const minimatch = require('minimatch')
-const childProcess = require('child_process')
+const walk = require('ignore-walk')
+const { spawn } = require('child_process')
 const { promisify } = require('util')
 const { ms } = require('./lib/util')
 const { parse } = require('./lib/todo')
 
-const stat = promisify(fs.stat)
-const readdir = promisify(fs.readdir)
 const readFile = promisify(fs.readFile)
-const exec = promisify(childProcess.exec)
+const aWalk = promisify(walk)
 
-async function getGitIgnore () {
-  const file = await readFile(path.resolve(process.cwd(), '.gitignore'), 'utf8')
+const CONTAINS_TODO = new RegExp('(TODO|TODOS|FIXME|CHANGED|IDEA|HACK|NOTE|REVIEW): (.+?)', 'i')
 
-  const ignoredFiles = file.split('\n')
-    .filter((line) => {
-      return line.indexOf('#') === -1 && line.trim() !== ''
-    })
-    .map((line) => {
-      const cleanedString = line.trim()
-      if (cleanedString[cleanedString.length - 1] === '/') {
-        return cleanedString.substring(0, cleanedString.length - 1)
-      }
-      return cleanedString
-    })
+function getBlameInformation (line, fullPath) {
+  return new Promise(function (resolve, reject) {
+    try {
+      let entries = {}
 
-  return [
-    ...ignoredFiles,
-    '.git'
-  ]
-}
+      // git blame -L 112,112 /path/to/file --line-porcelain
+      const child = spawn('git', ['blame', '-L', `${line},${line}`, fullPath, '--line-porcelain'], {
+        silent: true
+      })
 
-async function getBlameInformation (line, fullPath) {
-  try {
-    // git blame -L 112,112 /path/to/file --line-porcelain
-    const { stdout } = await exec(`git blame -L ${line},${line} ${fullPath} --line-porcelain`)
+      child.stdout.on('data', (data) => {
+        entries = data.toString('utf8').split('\n').reduce((obj, item) => {
+          const split = item.indexOf(' ')
+          const key = item.substring(0, split)
+          const value = item.substring(split + 1, item.length)
 
-    const entries = stdout.split('\n').reduce((obj, item) => {
-      const split = item.indexOf(' ')
-      const key = item.substring(0, split)
-      const value = item.substring(split + 1, item.length)
+          obj[key] = value
 
-      obj[key] = value
+          return obj
+        }, {})
+      })
 
-      return obj
-    }, {})
-
-    return entries
-  } catch (ex) {
-    return {}
-  }
-}
-
-async function searchDirectory (directory, ignoredFiles) {
-  let foundItems = []
-
-  const list = await readdir(directory)
-
-  for (const item of list) {
-    const fullPath = path.resolve(directory, item)
-
-    const _stat = await stat(fullPath)
-
-    const ignored = ignoredFiles.find((regex) => {
-      return minimatch(item, regex)
-    })
-
-    if (ignored) continue
-
-    if (_stat.isDirectory()) {
-      foundItems = foundItems.concat(await searchDirectory(fullPath, ignoredFiles))
+      child.on('exit', () => resolve(entries))
+    } catch (ex) {
+      return resolve()
     }
+  })
+}
 
-    if (_stat.isFile()) {
+async function searchDirectory (directory, filter, quick, author, foundCallback) {
+  const files = await aWalk({
+    path: directory,
+    ignoreFiles: ['.gitignore'],
+    follow: false
+  })
+
+  for (const file of files) {
+    if (file.indexOf('.git') > -1) continue
+
+    try {
+      const fullPath = path.resolve(directory, file)
       const content = await readFile(fullPath, 'utf8')
+
+      if (!CONTAINS_TODO.exec(content)) continue
+
       const lines = content.split('\n')
 
       for (var i = 0; i < lines.length; i++) {
@@ -82,23 +63,32 @@ async function searchDirectory (directory, ignoredFiles) {
         const todo = parse(line, lines[i])
 
         if (todo) {
-          const entries = await getBlameInformation(line, fullPath)
+          if (filter && !todo.rawContent.includes(filter)) continue
 
-          foundItems.push({
-            committer: entries ? entries['committer'] : '?',
+          let entries
+          if (!quick) {
+            entries = await getBlameInformation(line, fullPath)
+          }
+
+          const commitAuthor = entries ? /<(.+?)@(.+?)>/.exec(entries['author-mail'])[1] : undefined
+
+          if (author && !commitAuthor.includes(author)) continue
+
+          foundCallback(null, {
+            author: commitAuthor,
             timeSinceCommit: entries ? ms(Date.now() - (parseInt(entries['committer-time']) * 1000)) : 0,
             fullPath,
             todo
           })
         }
       }
+    } catch (ex) {
+      //
     }
   }
-
-  return foundItems
 }
 
 module.exports = {
-  getGitIgnore,
+  getBlameInformation,
   searchDirectory
 }

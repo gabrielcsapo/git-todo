@@ -7,6 +7,6 @@ const tasks = [
   { todo: { content: 'foo bar', users: ['gcsapo'], hashtags: ['foo', 'bar'], column: 0, line: 12 }, timeSinceCommit: '5w', fullPath: '/foo/boo.js' }
 ]
 
-for(const verbose of [false, true]) {
+for (const verbose of [false, true]) {
   tasks.forEach((t) => console.log(renderTask(t, verbose)))
 }

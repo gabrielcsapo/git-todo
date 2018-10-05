@@ -21,11 +21,15 @@ npm install git-todo -g
 ```
 $ git-todo --help
 
- Usage
-   $ git-todo [options]
+Usage
+  $ git-todo [options]
 
- Options
-   --verbose, -v           Show an expanded output
+Options
+  --quick, -q              Don't get blame information
+  --verbose, -v            Show an expanded output
+  --directory, -d <path>   Specify a directory relative to the one you are currently in
+  --filter, -f <string>    Filter todos by the given string
+  --author, -a <author>    Filter todos by the author
 ```
 
 ## Output
@@ -33,15 +37,22 @@ $ git-todo --help
 > git todo
 
 ```
-● 1d foo bar @gcsapo
-● 1d foo bar @gcsapo #foo, #bar
+● @foo 1d "foo bar"
+● @foo 1d "foo bar" @gcsapo #foo, #bar
+```
+
+> git todo --quick
+
+```
+● 1d "foo bar" @gcsapo #foo, #bar
+● 1d "foo bar" @gcsapo
 ```
 
 > git todo --verbose
 
 ```
-● 1d foo bar @gcsapo
+● @foo 1d "foo bar" @gcsapo
   /foo/bar.js (12:0)
-● 1d foo bar @gcsapo #foo, #bar
+● @bar 1d "foo bar" @gcsapo #foo, #bar
   /foo/boo.js (12:0)
 ```
