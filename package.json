@@ -1,6 +1,6 @@
 {
   "name": "git-todo",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "description": "✓ getting things done with git",
   "main": "index.js",
   "scripts": {

@@ -47,17 +47,17 @@ if (cli.help) {
 }
 
 (async function () {
-  let found = 0
+  let totalFound = 0
 
   const directory = cli.directory ? path.resolve(process.cwd(), cli.directory) : process.cwd()
 
   await searchDirectory(directory, cli.filter, cli.quick, cli.author, (error, found) => {
     if (error) console.log('Error:', error)
     process.stdout.write(renderTask(found, cli.verbose) + '\n')
-    found++
+    totalFound++
   })
 
-  if (!found) {
+  if (!totalFound) {
     process.stdout.write(renderEmpty() + '\n')
   }
 }())

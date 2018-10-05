@@ -1,3 +1,7 @@
+# 2.1.1 (10/05/2018)
+
+- fix shadow variable from capturing value incorrectly (resulting in showing of empty state all the time)
+
 # 2.1.0 (10/05/2018)
 
 - adds `quick, directory, filter and author` flags
