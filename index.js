@@ -58,7 +58,7 @@ async function searchDirectory (directory, filter, quick, author, foundCallback)
 
       const lines = content.split('\n')
 
-      for (var i = 0; i < lines.length; i++) {
+      for (let i = 0; i < lines.length; i++) {
         const line = i + 1
         const todo = parse(line, lines[i])
 

@@ -4,8 +4,8 @@
   "description": "✓ getting things done with git",
   "main": "index.js",
   "scripts": {
-    "lint": "standard --verbose",
-    "test": "tape test/**.js",
+    "lint": "prettier lib/** __tests__/** bin/** --check",
+    "test": "vitest --run",
     "coverage": "tap test --coverage --coverage-report=lcov",
     "pack": "pkg bin/git-todo.js -c package.json -o packed/git-todo"
   },
@@ -49,8 +49,7 @@
   },
   "devDependencies": {
     "pkg": "^4.3.4",
-    "standard": "^12.0.1",
-    "tap": "^12.0.1",
-    "tape": "^4.9.1"
+    "prettier": "^3.0.0",
+    "vitest": "^0.33.0"
   }
 }
