@@ -35,10 +35,10 @@
       "index.js"
     ],
     "targets": [
-      "node8-alpine-x64",
-      "node8-linux-x64",
-      "node8-macos-x64",
-      "node8-win-x64"
+      "node18-alpine-x64",
+      "node18-linux-x64",
+      "node18-macos-x64",
+      "node18-win-x64"
     ]
   },
   "dependencies": {
@@ -48,7 +48,7 @@
     "woof": "^0.4.1"
   },
   "devDependencies": {
-    "pkg": "^4.3.4",
+    "pkg": "^5.8.1",
     "prettier": "^3.0.0",
     "vitest": "^0.33.0"
   }
