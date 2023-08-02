@@ -1,3 +1,9 @@
+# 2.2.0 (08/02/2023)
+
+- utilizes workers to speed up git work
+- upgrades deps
+- migrates tests to vitest
+
 # 2.1.1 (10/05/2018)
 
 - fix shadow variable from capturing value incorrectly (resulting in showing of empty state all the time)

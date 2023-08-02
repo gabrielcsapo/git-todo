@@ -1,11 +1,10 @@
 // Used to render the examples in the README.md
-
-const { renderTask } = require("../../lib/render");
+import { renderTask } from "../../lib/render.js";
 
 const tasks = [
   {
     todo: { content: "foo bar", users: ["gcsapo"], column: 0, line: 12 },
-    timeSinceCommit: "1d",
+    time: Date.now(),
     fullPath: "/foo/bar.js",
   },
   {
@@ -16,11 +15,18 @@ const tasks = [
       column: 0,
       line: 12,
     },
-    timeSinceCommit: "5w",
+    time: new Date(Date.now() - 5 * 7 * 24 * 60 * 60 * 1000),
     fullPath: "/foo/boo.js",
   },
 ];
 
-for (const verbose of [false, true]) {
-  tasks.forEach((t) => console.log(renderTask(t, verbose)));
+for (const option of [{}, { quick: true }, { verbose: true }]) {
+  console.log();
+  console.log(
+    `> git todo ${option.quick ? "--quick" : option.verbose ? "--verbose" : ""}`
+  );
+  console.log();
+  console.log("```sh");
+  tasks.forEach((t) => console.log(renderTask(t, option)));
+  console.log("```");
 }

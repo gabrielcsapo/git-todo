@@ -1,8 +1,9 @@
 {
   "name": "git-todo",
-  "version": "2.1.1",
+  "version": "2.2.0",
   "description": "✓ getting things done with git",
   "main": "index.js",
+  "type": "module",
   "scripts": {
     "lint": "prettier lib/** __tests__/** bin/** --check",
     "test": "vitest --run",
@@ -41,11 +42,10 @@
     ]
   },
   "dependencies": {
-    "chalk": "^2.4.1",
-    "figures": "^2.0.0",
-    "ignore-walk": "^3.0.1",
-    "minimatch": "^3.0.4",
-    "woof": "^0.3.1"
+    "chalk": "^5.3.0",
+    "fast-glob": "^3.3.1",
+    "figures": "^5.0.0",
+    "woof": "^0.4.1"
   },
   "devDependencies": {
     "pkg": "^4.3.4",

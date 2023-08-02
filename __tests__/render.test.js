@@ -1,8 +1,8 @@
 import { test, describe, expect } from "vitest";
-import figures, { tick } from "figures";
+import figures from "figures";
 import { green } from "chalk";
 
-import { renderTask, renderEmpty } from "../lib/render";
+import { renderTask, renderEmpty } from "../lib/render.js";
 
 describe("@render", () => {
   test("@renderEmpty", () => {
@@ -11,55 +11,54 @@ describe("@render", () => {
 
       process.stdout.write(empty + "\n");
 
-      expect(empty).toBe(`${green(tick)} no todos found!`);
+      expect(empty).toBe(`${green(figures.tick)} no todos found!`);
     });
   });
 
-  test("@renderTask", () => {
+  describe("@renderTask", () => {
     test("should be able to render a simple todo", () => {
       const task = renderTask({
         todo: { content: "foo bar", column: 0 },
-        timeSinceCommit: "1d",
+        fullPath: "/example/bar.txt",
+        time: Date.now(),
         line: 12,
       });
 
       process.stdout.write(task + "\n");
 
-      expect(task).toBe(
-        `${figures("●")} \x1b[90m1d\x1b[39m "\x1b[1mfoo bar\x1b[22m"`,
+      expect(task).toMatchInlineSnapshot(
+        '"● [90m53y[39m \\"[1mfoo bar[22m\\"- [90m/example/bar.txt[39m"'
       );
     });
 
     test("should be able to render a simple todo with an author", () => {
       const task = renderTask({
         todo: { content: "foo bar", column: 0 },
+        fullPath: "/example/bar.txt",
         author: "foo",
-        timeSinceCommit: "1d",
+        time: Date.now(),
         line: 12,
       });
 
       process.stdout.write(task + "\n");
 
-      expect(task).toBe(
-        `${figures(
-          "●",
-        )} @\x1b[34mfoo\x1b[39m \x1b[90m1d\x1b[39m "\x1b[1mfoo bar\x1b[22m"`,
+      expect(task).toMatchInlineSnapshot(
+        '"● @[34mfoo[39m [90m53y[39m \\"[1mfoo bar[22m\\"- [90m/example/bar.txt[39m"'
       );
     });
 
     test("should be able to render a todo with users", () => {
       const task = renderTask({
         todo: { content: "foo bar", users: ["gcsapo"], column: 0 },
-        timeSinceCommit: "1d",
+        fullPath: "/example/bar.txt",
+        time: Date.now(),
         line: 12,
       });
 
       process.stdout.write(task + "\n");
 
-      expect(task).toBe(
-        `${figures(
-          "●",
-        )} \x1b[90m1d\x1b[39m "\x1b[1mfoo bar\x1b[22m" @\x1b[34mgcsapo\x1b[39m`,
+      expect(task).toMatchInlineSnapshot(
+        '"● [90m53y[39m \\"[1mfoo bar[22m\\" @[34mgcsapo[39m- [90m/example/bar.txt[39m"'
       );
     });
 
@@ -72,16 +71,15 @@ describe("@render", () => {
           column: 0,
           line: 12,
         },
-        timeSinceCommit: "1d",
+        fullPath: "/example/bar.txt",
+        time: Date.now(),
         line: 12,
       });
 
       process.stdout.write(task + "\n");
 
-      expect(task).toBe(
-        `${figures(
-          "●",
-        )} \x1b[90m1d\x1b[39m "\x1b[1mfoo bar\x1b[22m" @\x1b[34mgcsapo\x1b[39m #\x1b[33mfoo\x1b[39m, #\x1b[33mbar\x1b[39m`,
+      expect(task).toMatchInlineSnapshot(
+        '"● [90m53y[39m \\"[1mfoo bar[22m\\" @[34mgcsapo[39m #[33mfoo[39m, #[33mbar[39m- [90m/example/bar.txt[39m"'
       );
     });
 
@@ -95,18 +93,18 @@ describe("@render", () => {
             column: 0,
             line: 12,
           },
-          timeSinceCommit: "1d",
+          time: Date.now(),
           fullPath: "/foo/bar/boo.js",
           line: 12,
         },
-        true,
+        true
       );
       process.stdout.write(task + "\n");
-      expect(task).toBe(
-        `${figures(
-          "●",
-        )} \x1b[90m1d\x1b[39m "\x1b[1mfoo bar\x1b[22m" @\x1b[34mgcsapo\x1b[39m #\x1b[33mfoo\x1b[39m, #\x1b[33mbar\x1b[39m\n  /foo/bar/boo.js (12:0)`,
-      );
+
+      expect(task).toMatchInlineSnapshot(`
+        "● [90m53y[39m \\"[1mfoo bar[22m\\" @[34mgcsapo[39m #[33mfoo[39m, #[33mbar[39m
+          /foo/bar/boo.js (12:0)- [90m/foo/bar/boo.js[39m"
+      `);
     });
   });
 });

@@ -1,94 +1,65 @@
-const fs = require('fs')
-const path = require('path')
-const walk = require('ignore-walk')
-const { spawn } = require('child_process')
-const { promisify } = require('util')
-const { ms } = require('./lib/util')
-const { parse } = require('./lib/todo')
+import path from "path";
+import glob from "fast-glob";
+import { Worker } from "worker_threads";
+import { fileURLToPath } from "url";
 
-const readFile = promisify(fs.readFile)
-const aWalk = promisify(walk)
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-const CONTAINS_TODO = new RegExp('(TODO|TODOS|FIXME|CHANGED|IDEA|HACK|NOTE|REVIEW): (.+?)', 'i')
+function chunkArray(array, chunkSize) {
+  var index = 0;
+  var arrayLength = array.length;
+  var tempArray = [];
 
-function getBlameInformation (line, fullPath) {
-  return new Promise(function (resolve, reject) {
-    try {
-      let entries = {}
-
-      // git blame -L 112,112 /path/to/file --line-porcelain
-      const child = spawn('git', ['blame', '-L', `${line},${line}`, fullPath, '--line-porcelain'], {
-        silent: true
-      })
-
-      child.stdout.on('data', (data) => {
-        entries = data.toString('utf8').split('\n').reduce((obj, item) => {
-          const split = item.indexOf(' ')
-          const key = item.substring(0, split)
-          const value = item.substring(split + 1, item.length)
-
-          obj[key] = value
-
-          return obj
-        }, {})
-      })
-
-      child.on('exit', () => resolve(entries))
-    } catch (ex) {
-      return resolve()
-    }
-  })
-}
-
-async function searchDirectory (directory, filter, quick, author, foundCallback) {
-  const files = await aWalk({
-    path: directory,
-    ignoreFiles: ['.gitignore'],
-    follow: false
-  })
-
-  for (const file of files) {
-    if (file.indexOf('.git') > -1) continue
-
-    try {
-      const fullPath = path.resolve(directory, file)
-      const content = await readFile(fullPath, 'utf8')
-
-      if (!CONTAINS_TODO.exec(content)) continue
-
-      const lines = content.split('\n')
-
-      for (let i = 0; i < lines.length; i++) {
-        const line = i + 1
-        const todo = parse(line, lines[i])
-
-        if (todo) {
-          if (filter && !todo.rawContent.includes(filter)) continue
-
-          let entries
-          if (!quick) {
-            entries = await getBlameInformation(line, fullPath)
-          }
-
-          const commitAuthor = entries ? /<(.+?)@(.+?)>/.exec(entries['author-mail'])[1] : undefined
-
-          if (author && !commitAuthor.includes(author)) continue
-
-          foundCallback(null, {
-            author: commitAuthor,
-            timeSinceCommit: entries ? ms(Date.now() - (parseInt(entries['committer-time']) * 1000)) : 0,
-            fullPath,
-            todo
-          })
-        }
-      }
-    } catch (ex) {
-      //
-    }
+  for (index = 0; index < arrayLength; index += chunkSize) {
+    tempArray.push(array.slice(index, index + chunkSize));
   }
+
+  return tempArray;
 }
 
-module.exports = {
-  getBlameInformation,
-  searchDirectory
+export async function searchDirectory(
+  directory,
+  filter,
+  quick,
+  author,
+  ignore,
+  foundCallback
+) {
+  const files = await glob("**", {
+    cwd: directory,
+    ignore: ignore ? ignore.split(",") : [],
+  });
+
+  // Number of threads can be tuned for performance
+  const numThreads = 4;
+  const chunks = chunkArray(files, Math.ceil(files.length / numThreads));
+
+  const workerPromises = chunks.map((chunk, index) => {
+    return new Promise((resolve, reject) => {
+      const worker = new Worker(path.resolve(__dirname, "./lib/worker.js"), {
+        workerData: { chunk, directory, filter, quick, author, ignore },
+      });
+
+      worker.on("message", (message) => {
+        if (message.error) {
+          foundCallback(message.error);
+        } else {
+          foundCallback(null, message);
+        }
+      });
+
+      worker.on("error", reject);
+      worker.on("exit", (code) => {
+        if (code !== 0) {
+          reject(new Error(`Worker stopped with exit code ${code}`));
+        } else {
+          resolve();
+        }
+      });
+    });
+  });
+
+  await Promise.allSettled(workerPromises).then((ex) => {
+    console.log(ex);
+  });
 }

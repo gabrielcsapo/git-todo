@@ -1,9 +1,10 @@
 #!/usr/bin/env node
 
-const path = require("path");
-const woof = require("woof");
-const { renderTask, renderEmpty } = require("../lib/render");
-const { searchDirectory } = require("../index");
+import path from "path";
+import woof from "woof";
+
+import { renderTask, renderEmpty } from "../lib/render.js";
+import { searchDirectory } from "../index.js";
 
 const cli = woof(
   `
@@ -24,6 +25,10 @@ const cli = woof(
         alias: "d",
         default: process.cwd(),
       },
+      ignore: {
+        type: "string",
+        alias: "i",
+      },
       verbose: {
         type: "boolean",
         alias: "v",
@@ -41,8 +46,12 @@ const cli = woof(
         type: "string",
         alias: "a",
       },
+      csv: {
+        type: "boolean",
+        default: false,
+      },
     },
-  },
+  }
 );
 
 if (cli.help) {
@@ -56,16 +65,23 @@ if (cli.help) {
     ? path.resolve(process.cwd(), cli.directory)
     : process.cwd();
 
+  if (cli.csv) {
+    process.stdout.write(
+      `fullPath, line, column, author, authorEmail, content, time, fullPath \n`
+    );
+  }
+
   await searchDirectory(
     directory,
     cli.filter,
     cli.quick,
     cli.author,
+    cli.ignore,
     (error, found) => {
       if (error) console.log("Error:", error);
-      process.stdout.write(renderTask(found, cli.verbose) + "\n");
+      process.stdout.write(renderTask(found, cli.verbose, cli.csv) + "\n");
       totalFound++;
-    },
+    }
   );
 
   if (!totalFound) {

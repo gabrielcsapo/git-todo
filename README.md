@@ -8,13 +8,13 @@
 
 ## Installation
 
-```
+```sh
 npm install git-todo -g
 ```
 
 ## Usage
 
-```
+```sh
 $ git-todo --help
 
 Usage
@@ -32,23 +32,27 @@ Options
 
 > git todo
 
-```
-● @foo 1d "foo bar"
-● @foo 1d "foo bar" @gcsapo #foo, #bar
+```sh
+● 53y "foo bar" @gcsapo
+  /foo/bar.js (12:0)- /foo/bar.js
+● 53y "foo bar" @gcsapo #foo, #bar
+  /foo/boo.js (12:0)- /foo/boo.js
 ```
 
 > git todo --quick
 
-```
-● 1d "foo bar" @gcsapo #foo, #bar
-● 1d "foo bar" @gcsapo
+```sh
+● 53y "foo bar" @gcsapo
+  /foo/bar.js (12:0)- /foo/bar.js
+● 53y "foo bar" @gcsapo #foo, #bar
+  /foo/boo.js (12:0)- /foo/boo.js
 ```
 
 > git todo --verbose
 
-```
-● @foo 1d "foo bar" @gcsapo
-  /foo/bar.js (12:0)
-● @bar 1d "foo bar" @gcsapo #foo, #bar
-  /foo/boo.js (12:0)
+```sh
+● 53y "foo bar" @gcsapo
+  /foo/bar.js (12:0)- /foo/bar.js
+● 53y "foo bar" @gcsapo #foo, #bar
+  /foo/boo.js (12:0)- /foo/boo.js
 ```
